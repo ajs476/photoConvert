@@ -50,6 +50,8 @@ int main() {
    			if(character3 == '\n'){
    				// newline was found to be the next char
    				printf("New line detected \n");
+				character3 = fgetc(fp);
+				printf("Current char: %d \n", character3);
    			}
    			else{
    				// char 3 was not a newline, display it for testing
