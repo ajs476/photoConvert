@@ -58,6 +58,9 @@ void getColorRange(){
 	// get image color range
 	fscanf(fp, "%d\n",  &imageDimensionColor);
 	printf("Image Color Range: %d\n", imageDimensionColor);
+	if(imageDimensionColor > 255){
+		fprintf(stderr, "Error: Image color not 8 bit per channel");
+	}
 }
 
 void getFileType(){
@@ -74,6 +77,8 @@ void getHeaderInfo(){
 	getDimensions();
 	getColorRange();	
 }
+
+
 
 int main() {
 	
@@ -116,17 +121,21 @@ int main() {
 	// reset file pointer position to beginning of file
 	rewind(fp);
 
+	// read header info from file
 	getHeaderInfo();
 
+	if(magicNumber[0] == 80 && magicNumber[1] == 51){
+		// we were given a p3 ppm file
+	}
+	else if(magicNumber[0] == 80 && magicNumber[1] == 54){
+		// we were given a p6 ppm file
+	}
+	else{
+		// we were not given a p3 or a p6 ppm file
+		fprintf(stderr, "Error: Invalid Filetype... \n");
+		return 1;
+	}
 
-	
-	
-
-
-
-
-
-	
 
 
 	fclose(fp);
