@@ -20,10 +20,6 @@ typedef struct Pixel{
     unsigned char blue;
     } Pixel;
 
-
-
-
-
 void skipComments(){
 	if(tempChar == '#'){
 		// comment exists, lets get to the end of it
@@ -83,7 +79,7 @@ void getHeaderInfo(){
 int main() {
 	
     // open up our image fo reading
-    fp = fopen("testImageAscii.ppm", "rb");
+    fp = fopen("testImageRaw.ppm", "rb");
 
 	// make sure file opened exists
 	if(fp == NULL ){
@@ -110,49 +106,56 @@ int main() {
 	}
 	imageBuffer[i] = 0;
 
-	// printing contents of imageBuffer
-	/*int j = 0;
-	while(j < .0005*i){
-		printf("%c", imageBuffer[j]);
-		j++;
-	}
-	*/
-	
 	// reset file pointer position to beginning of file
 	rewind(fp);
 
 	// read header info from file
 	getHeaderInfo();
 
-
 	int imageDataSize = sizeof(Pixel)*imageDimensionX*imageDimensionY;
+	int count = 0;
+	fpOut = fopen("output.ppm", "wb+");
 	Pixel myPixel;
 	Pixel *pixelBuffer = malloc(imageDataSize);
-	int count = 0;
-	while(!feof(fp)){
-		fscanf(fp, "%hhu ", &myPixel.red);
-		fscanf(fp, "%hhu ", &myPixel.green);
-		fscanf(fp, "%hhu ", &myPixel.blue);
-		pixelBuffer[count] = myPixel;
-		count++;
-	}
-
-	// write p6 data
-	fpOut = fopen("output.ppm", "wb+");
-	fprintf(fpOut, "P6\n");
-	fprintf(fpOut, "%d %d\n", imageDimensionX, imageDimensionY);
-	fprintf(fpOut, "%d\n", imageDimensionColor);
-	fwrite(pixelBuffer, sizeof(Pixel), count, fpOut);
-
-	
 
 	if(magicNumber[0] == 80 && magicNumber[1] == 51){
 		// we were given a p3 ppm file
-		//fwritef
+		// write p6 header info
+		fprintf(fpOut, "P6\n");
+		fprintf(fpOut, "%d %d\n", imageDimensionX, imageDimensionY);
+		fprintf(fpOut, "%d\n", imageDimensionColor);
+		// read p3 image
+		while(!feof(fp)){
+			fscanf(fp, "%hhu ", &myPixel.red);
+			fscanf(fp, "%hhu ", &myPixel.green);
+			fscanf(fp, "%hhu ", &myPixel.blue);
+			pixelBuffer[count] = myPixel;
+			count++;
+			
+		}
+		// write p6 image
+		fwrite(pixelBuffer, sizeof(Pixel), count, fpOut);
+
+				
 	}
 	else if(magicNumber[0] == 80 && magicNumber[1] == 54){
 		// we were given a p6 ppm file
-		//fprintf
+		
+		// write p3 header
+		fprintf(fpOut, "P3\n");
+		fprintf(fpOut, "%d %d\n", imageDimensionX, imageDimensionY);
+		fprintf(fpOut, "%d\n", imageDimensionColor);
+		// read p6 image
+		while(!feof(fp)){
+			fread(&myPixel.red, 1, 1, fp);
+			fread(&myPixel.green, 1, 1, fp);
+			fread(&myPixel.blue, 1, 1, fp);
+			pixelBuffer[count] = myPixel;
+			count++;
+			// write p3 image
+			fprintf(fpOut, "%i %i %i ", myPixel.red, myPixel.green, myPixel.blue);
+		}
+			
 	}
 	else{
 		// we were not given a p3 or a p6 ppm file
