@@ -4,15 +4,15 @@
 
 
 FILE *fp;
-
+FILE *fpOut;
 int tempChar;
 int i;
 int imageSize;
-int sz2;
 int imageDimensionX;
 int imageDimensionY;
 int imageDimensionColor;
 char magicNumber[2];
+
 
 typedef struct Pixel{
 	unsigned char red;
@@ -83,7 +83,7 @@ void getHeaderInfo(){
 int main() {
 	
     // open up our image fo reading
-    fp = fopen("testImageAscii1.ppm", "r");
+    fp = fopen("testImageAscii.ppm", "rb");
 
 	// make sure file opened exists
 	if(fp == NULL ){
@@ -124,11 +124,35 @@ int main() {
 	// read header info from file
 	getHeaderInfo();
 
+
+	int imageDataSize = sizeof(Pixel)*imageDimensionX*imageDimensionY;
+	Pixel myPixel;
+	Pixel *pixelBuffer = malloc(imageDataSize);
+	int count = 0;
+	while(!feof(fp)){
+		fscanf(fp, "%hhu ", &myPixel.red);
+		fscanf(fp, "%hhu ", &myPixel.green);
+		fscanf(fp, "%hhu ", &myPixel.blue);
+		pixelBuffer[count] = myPixel;
+		count++;
+	}
+
+	// write p6 data
+	fpOut = fopen("output.ppm", "wb+");
+	fprintf(fpOut, "P6\n");
+	fprintf(fpOut, "%d %d\n", imageDimensionX, imageDimensionY);
+	fprintf(fpOut, "%d\n", imageDimensionColor);
+	fwrite(pixelBuffer, sizeof(Pixel), count, fpOut);
+
+	
+
 	if(magicNumber[0] == 80 && magicNumber[1] == 51){
 		// we were given a p3 ppm file
+		//fwritef
 	}
 	else if(magicNumber[0] == 80 && magicNumber[1] == 54){
 		// we were given a p6 ppm file
+		//fprintf
 	}
 	else{
 		// we were not given a p3 or a p6 ppm file
@@ -137,7 +161,7 @@ int main() {
 	}
 
 
-
+	fclose(fpOut);
 	fclose(fp);
 
     return 0;
