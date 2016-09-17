@@ -76,16 +76,20 @@ void getHeaderInfo(){
 
 
 
-int main() {
+
+int main(int argc, char *argv[]) {
+
+	
 	
     // open up our image fo reading
-    fp = fopen("testImageRaw.ppm", "rb");
+    fp = fopen(argv[2], "rb");
 
 	// make sure file opened exists
 	if(fp == NULL ){
    		fprintf(stderr, "Error reading file... \n");
    		return 1;
     }
+
 
   	printf("Success: File opened \n");
 
@@ -114,47 +118,93 @@ int main() {
 
 	int imageDataSize = sizeof(Pixel)*imageDimensionX*imageDimensionY;
 	int count = 0;
-	fpOut = fopen("output.ppm", "wb+");
+	fpOut = fopen(argv[3], "wb+");
 	Pixel myPixel;
 	Pixel *pixelBuffer = malloc(imageDataSize);
 
-	if(magicNumber[0] == 80 && magicNumber[1] == 51){
-		// we were given a p3 ppm file
-		// write p6 header info
-		fprintf(fpOut, "P6\n");
-		fprintf(fpOut, "%d %d\n", imageDimensionX, imageDimensionY);
-		fprintf(fpOut, "%d\n", imageDimensionColor);
-		// read p3 image
-		while(!feof(fp)){
-			fscanf(fp, "%hhu ", &myPixel.red);
-			fscanf(fp, "%hhu ", &myPixel.green);
-			fscanf(fp, "%hhu ", &myPixel.blue);
-			pixelBuffer[count] = myPixel;
-			count++;
-			
-		}
-		// write p6 image
-		fwrite(pixelBuffer, sizeof(Pixel), count, fpOut);
+	
 
-				
+	if(magicNumber[0] == 80 && magicNumber[1] == 51){
+
+		if(strcmp(argv[1], "3") == 0){
+			printf("Creating P3 from P3...\n");
+			// write p3 header info
+			fprintf(fpOut, "P3\n");
+			fprintf(fpOut, "%d %d\n", imageDimensionX, imageDimensionY);
+			fprintf(fpOut, "%d\n", imageDimensionColor);
+			while(!feof(fp)){
+				fscanf(fp, "%hhu ", &myPixel.red);
+				fscanf(fp, "%hhu ", &myPixel.green);
+				fscanf(fp, "%hhu ", &myPixel.blue);
+				pixelBuffer[count] = myPixel;
+				count++;
+				// write p3 image
+				fprintf(fpOut, "%i %i %i ", myPixel.red, myPixel.green, myPixel.blue);
+			}
+		}
+		else if(strcmp(argv[1], "6") == 0){
+			printf("Creating P6 from P3...\n");
+			// we were given a p3 ppm file
+			// write p6 header info
+			fprintf(fpOut, "P6\n");
+			fprintf(fpOut, "%d %d\n", imageDimensionX, imageDimensionY);
+			fprintf(fpOut, "%d\n", imageDimensionColor);
+			// read p3 image
+			while(!feof(fp)){
+				fscanf(fp, "%hhu ", &myPixel.red);
+				fscanf(fp, "%hhu ", &myPixel.green);
+				fscanf(fp, "%hhu ", &myPixel.blue);
+				pixelBuffer[count] = myPixel;
+				count++;
+			}
+			// write p6 image
+			fwrite(pixelBuffer, sizeof(Pixel), count, fpOut);
+		}
+		
+		else{
+			fprintf(stderr, "Error: Expected '3' or '6' \n");
+		}		
 	}
 	else if(magicNumber[0] == 80 && magicNumber[1] == 54){
 		// we were given a p6 ppm file
-		
-		// write p3 header
-		fprintf(fpOut, "P3\n");
-		fprintf(fpOut, "%d %d\n", imageDimensionX, imageDimensionY);
-		fprintf(fpOut, "%d\n", imageDimensionColor);
-		// read p6 image
-		while(!feof(fp)){
-			fread(&myPixel.red, 1, 1, fp);
-			fread(&myPixel.green, 1, 1, fp);
-			fread(&myPixel.blue, 1, 1, fp);
-			pixelBuffer[count] = myPixel;
-			count++;
-			// write p3 image
-			fprintf(fpOut, "%i %i %i ", myPixel.red, myPixel.green, myPixel.blue);
+		if(strcmp(argv[1], "3") == 0){
+			printf("Creating P3 from P6...\n");
+			// write p3 header
+			fprintf(fpOut, "P3\n");
+			fprintf(fpOut, "%d %d\n", imageDimensionX, imageDimensionY);
+			fprintf(fpOut, "%d\n", imageDimensionColor);
+			// read p6 image
+			while(!feof(fp)){
+				fread(&myPixel.red, 1, 1, fp);
+				fread(&myPixel.green, 1, 1, fp);
+				fread(&myPixel.blue, 1, 1, fp);
+				pixelBuffer[count] = myPixel;
+				count++;
+				// write p3 image
+				fprintf(fpOut, "%i %i %i ", myPixel.red, myPixel.green, myPixel.blue);
+			}
 		}
+		else if(strcmp(argv[1], "6") == 0){
+			printf("Creating P6 from P6...\n");
+			// write p6 header info
+			fprintf(fpOut, "P6\n");
+			fprintf(fpOut, "%d %d\n", imageDimensionX, imageDimensionY);
+			fprintf(fpOut, "%d\n", imageDimensionColor);
+			while(!feof(fp)){
+				fread(&myPixel.red, 1, 1, fp);
+				fread(&myPixel.green, 1, 1, fp);
+				fread(&myPixel.blue, 1, 1, fp);
+				pixelBuffer[count] = myPixel;
+				count++;
+			}
+			// write p6 image
+			fwrite(pixelBuffer, sizeof(Pixel), count, fpOut);
+		}
+		else{
+			fprintf(stderr, "Error: Expected '3' or '6' \n");
+		}
+		
+		
 			
 	}
 	else{
